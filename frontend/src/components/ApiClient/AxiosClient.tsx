@@ -2,7 +2,7 @@
 import axios from "axios";
 
 export default axios.create({
-    baseURL: "http://localhost:5000/tasks",
+    baseURL: "https://taskmanager-snsn.onrender.com/tasks",
     headers: {
         "Content-Type": "application/json",
     },

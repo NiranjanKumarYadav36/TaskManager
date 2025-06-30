@@ -67,8 +67,8 @@ export const loginHandle = async (req: Request, res: Response): Promise<void> =>
 
         res.cookie("token", token, {
             httpOnly: true,
-            // secure: process.env.NODE_ENV?.toString() === "production", // Secure in production
-            sameSite: "strict",
+            secure: true,
+            sameSite: "none",
             maxAge: 3600000,
         });
 
@@ -82,11 +82,12 @@ export const loginHandle = async (req: Request, res: Response): Promise<void> =>
 
 export const logoutHandle = async (req: Request, res: Response): Promise<void> => {
     try {
-        res.clearCookie("token"), {
+        res.clearCookie("token", {
             path: "/",
             httpOnly: true,
-            sameSite: "Lax"
-        }
+            sameSite: "none",
+            secure: true
+        });
 
         res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {

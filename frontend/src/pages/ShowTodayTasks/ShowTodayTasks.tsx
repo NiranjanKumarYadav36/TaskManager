@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import SideBar from '../SideBar/SideBar';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../components/ui/pagination';
 import AxiosClient from '../../components/ApiClient/AxiosClient';
 import { Button } from '../../components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Badge } from "../../components/ui/badge"
-import { Popover, PopoverTrigger, PopoverContent } from '../../components/ui/popover';
 import { MoreVertical } from 'lucide-react';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Toaster, toast } from 'react-hot-toast';
 import { Skeleton } from '../../components/ui/skeleton'; // Import skeleton component
 
@@ -32,7 +30,6 @@ function ShowTodayTasks() {
     const [loading, setLoading] = useState(true);
     const itemsPerPage = 6;
     const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
-    const [currentTask, setCurrentTask] = useState<Task | null>(null);
 
     const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
     const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
@@ -169,7 +166,7 @@ function ShowTodayTasks() {
                         {task.title}
                     </CardTitle>
                     <Dialog>
-                        <DialogTrigger asChild onClick={() => setCurrentTask(task)}>
+                        <DialogTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                 <MoreVertical className="h-4 w-4" />
                                 <span className="sr-only">More options</span>

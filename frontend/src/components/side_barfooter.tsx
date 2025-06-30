@@ -1,4 +1,4 @@
-import { LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +21,6 @@ import { Skeleton } from "../components/ui/skeleton";
 export function SideBarFooter() {
   const { isMobile } = useSidebar();
   const [username, setUsername] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -102,11 +101,6 @@ export function SideBarFooter() {
                 </Avatar>
                 <div className="flex-1 text-left overflow-hidden">
                   <p className="font-medium truncate">{username}</p>
-                  {email && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {email}
-                    </p>
-                  )}
                 </div>
               </div>
             </SidebarMenuButton>

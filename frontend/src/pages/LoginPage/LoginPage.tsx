@@ -2,7 +2,6 @@ import { Link, useNavigate } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import {
     Card,
-    CardAction,
     CardContent,
     CardDescription,
     CardFooter,
@@ -20,7 +19,7 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault()
         setLoading(true)
 

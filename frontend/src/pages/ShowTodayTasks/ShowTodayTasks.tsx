@@ -33,7 +33,7 @@ function ShowTodayTasks() {
     const itemsPerPage = 6;
     const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
     const [currentTask, setCurrentTask] = useState<Task | null>(null);
-    
+
     const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
     const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
 
@@ -160,8 +160,8 @@ function ShowTodayTasks() {
 
     const renderTaskCards = () => {
         return filteredTasks.map(task => (
-            <Card 
-                key={task.id} 
+            <Card
+                key={task.id}
                 className={`mb-4 transition-shadow h-full flex flex-col overflow-hidden border ${getPriorityCardColor(task.priority)} hover:shadow-md`}
             >
                 <CardHeader className="flex flex-row justify-between items-start">
@@ -175,38 +175,45 @@ function ShowTodayTasks() {
                                 <span className="sr-only">More options</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[625px]">
+
+                        <DialogContent className="sm:max-w-2xl w-full">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl overflow-wrap-anywhere">{task.title}</DialogTitle>
+                                <DialogTitle className="text-2xl font-semibold break-words overflow-wrap-wnywhere">
+                                    {task.title}
+                                </DialogTitle>
                             </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <label htmlFor="status" className="text-sm font-medium">
-                                        Status: {task.status}
-                                    </label>
+
+                            <div className="space-y-5 pt-2 text-sm text-gray-700">
+                                {/* Status */}
+                                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+                                    <span className="sm:w-32 font-medium">Status:</span>
+                                    <span className="capitalize text-gray-900">{task.status}</span>
                                 </div>
 
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <label htmlFor="priority" className="text-sm font-medium">
-                                        Priority: {task.priority}
-                                    </label>
+                                {/* Priority */}
+                                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+                                    <span className="sm:w-32 font-medium">Priority:</span>
+                                    <span className="capitalize text-gray-900">{task.priority}</span>
                                 </div>
 
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <span className="text-sm font-medium">Due Date:</span>
-                                    <span className="col-span-3 text-sm">{formatDate(task.due_date)}</span>
+                                {/* Due Date */}
+                                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4">
+                                    <span className="sm:w-32 font-medium">Due Date:</span>
+                                    <span className="text-gray-900">{formatDate(task.due_date)}</span>
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <span className="text-sm font-medium">Description:</span>
+                                {/* Description */}
+                                <div className="flex flex-col">
+                                    <span className="font-medium mb-1">Description:</span>
                                     <div
-                                        className="prose prose-sm max-w-none p-4 bg-gray-50 rounded-lg overflow-wrap-anywhere"
+                                        className="prose prose-sm max-w-none bg-gray-100 p-4 rounded-lg break-words text-gray-900 overflow-wrap-anywhere"
                                         dangerouslySetInnerHTML={{ __html: task.content || '<p>No description provided</p>' }}
                                     />
                                 </div>
                             </div>
                         </DialogContent>
                     </Dialog>
+
                 </CardHeader>
                 <CardContent className="flex-grow">
                     <div className="mb-4">
@@ -220,7 +227,7 @@ function ShowTodayTasks() {
                                 className="p-0 h-auto text-sm text-blue-300"
                                 onClick={() => toggleDescription(task.id)}
                             >
-                                {expandedDescriptions[task.id] ? 'Show less' : '...Show more'}
+                                {expandedDescriptions[task.id]}
                             </Button>
                         )}
                     </div>

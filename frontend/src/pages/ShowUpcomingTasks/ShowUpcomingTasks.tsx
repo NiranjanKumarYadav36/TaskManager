@@ -85,7 +85,7 @@ function ShowUpcomingTasks() {
             setIsUpdating(false);
         }
     };
- 
+
 
     // Add new handler for tab changes
     const handleFilterChange = (value: string) => {
@@ -96,7 +96,7 @@ function ShowUpcomingTasks() {
 
     };
 
-    
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
@@ -197,13 +197,18 @@ function ShowUpcomingTasks() {
                                 <span className="sr-only">More options</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[625px]">
+
+                        <DialogContent className="sm:max-w-2xl w-full">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl">{task.title}</DialogTitle>
+                                <DialogTitle className="text-2xl font-semibold break-words overflow-wrap-anywhere">
+                                    {task.title}
+                                </DialogTitle>
                             </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <label htmlFor="status" className="text-sm font-medium">
+
+                            <div className="space-y-5 pt-2">
+                                {/* Status */}
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                    <label htmlFor="status" className="sm:w-32 text-sm font-medium text-gray-700">
                                         Status:
                                     </label>
                                     <Select
@@ -211,7 +216,7 @@ function ShowUpcomingTasks() {
                                         onValueChange={handleStatusChange}
                                         disabled={isUpdating}
                                     >
-                                        <SelectTrigger className="col-span-3">
+                                        <SelectTrigger className="sm:flex-1">
                                             <SelectValue placeholder="Select status" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -222,8 +227,9 @@ function ShowUpcomingTasks() {
                                     </Select>
                                 </div>
 
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <label htmlFor="priority" className="text-sm font-medium">
+                                {/* Priority */}
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                    <label htmlFor="priority" className="sm:w-32 text-sm font-medium text-gray-700">
                                         Priority:
                                     </label>
                                     <Select
@@ -231,7 +237,7 @@ function ShowUpcomingTasks() {
                                         onValueChange={handleFilterChange}
                                         disabled={isUpdating}
                                     >
-                                        <SelectTrigger className="col-span-3">
+                                        <SelectTrigger className="sm:flex-1">
                                             <SelectValue placeholder="Select priority" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -242,21 +248,24 @@ function ShowUpcomingTasks() {
                                     </Select>
                                 </div>
 
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <span className="text-sm font-medium">Due Date:</span>
-                                    <span className="col-span-3 text-sm">{formatDate(task.due_date)}</span>
+                                {/* Due Date */}
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                    <span className="sm:w-32 text-sm font-medium text-gray-700">Due Date:</span>
+                                    <span className="text-sm text-gray-900">{formatDate(task.due_date)}</span>
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <span className="text-sm font-medium">Description:</span>
+                                {/* Description */}
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-gray-700 mb-1">Description:</span>
                                     <div
-                                        className="prose prose-sm max-w-none p-4 bg-gray-50 rounded-lg overflow-wrap-anywhere"
+                                        className="prose prose-sm max-w-none p-4 bg-gray-100 rounded-lg text-gray-900 break-words overflow-wrap-anywhere"
                                         dangerouslySetInnerHTML={{ __html: task.content || '<p>No description provided</p>' }}
                                     />
                                 </div>
                             </div>
                         </DialogContent>
                     </Dialog>
+
                 </CardHeader>
                 <CardContent className="flex-grow">
                     <div className="mb-4">
@@ -270,7 +279,7 @@ function ShowUpcomingTasks() {
                                 className="p-0 h-auto text-sm text-blue-500 hover:text-blue-700"
                                 onClick={() => toggleDescription(task.id)}
                             >
-                                {expandedDescriptions[task.id] ? 'Show less' : '...Show more'}
+                                {expandedDescriptions[task.id]}
                             </Button>
                         )}
                     </div>

@@ -174,42 +174,46 @@ function ShowCompletedTasks() {
                                 <span className="sr-only">More options</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[625px]">
+                        <DialogContent className="sm:max-w-2xl w-full">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl overflow-wrap-anywhere">{task.title}</DialogTitle>
+                                <DialogTitle className="text-2xl font-semibold break-words overflow-wrap-anywhere">
+                                    {task.title}
+                                </DialogTitle>
+                                <DialogDescription className="text-sm text-gray-500">
+                                    Detailed view of the task
+                                </DialogDescription>
                             </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                {/* Status Selector */}
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <label htmlFor="status" className="text-sm font-medium">
-                                        Status: {task.status}
-                                    </label>
 
+                            <div className="mt-4 space-y-4">
+                                {/* Status */}
+                                <div className="flex items-start">
+                                    <span className="w-32 font-medium text-sm text-gray-700">Status:</span>
+                                    <span className="text-sm text-gray-900 capitalize">{task.status}</span>
                                 </div>
 
-                                {/* Priority Selector */}
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <label htmlFor="priority" className="text-sm font-medium">
-                                        Priority: {task.priority}
-                                    </label>
+                                {/* Priority */}
+                                <div className="flex items-start">
+                                    <span className="w-32 font-medium text-sm text-gray-700">Priority:</span>
+                                    <span className="text-sm text-gray-900 capitalize">{task.priority}</span>
                                 </div>
 
                                 {/* Due Date */}
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <span className="text-sm font-medium">Due Date:</span>
-                                    <span className="col-span-3 text-sm">{formatDate(task.due_date)}</span>
+                                <div className="flex items-start">
+                                    <span className="w-32 font-medium text-sm text-gray-700">Due Date:</span>
+                                    <span className="text-sm text-gray-900">{formatDate(task.due_date)}</span>
                                 </div>
 
                                 {/* Description */}
-                                <div className="grid gap-2">
-                                    <span className="text-sm font-medium">Description:</span>
+                                <div className="flex flex-col">
+                                    <span className="font-medium text-sm text-gray-700 mb-1">Description:</span>
                                     <div
-                                        className="prose prose-sm max-w-none p-4 bg-gray-50 rounded-lg overflow-wrap-anywhere"
+                                        className="prose prose-sm max-w-none p-4 bg-gray-100 rounded-lg text-gray-900 overflow-wrap-anywhere"
                                         dangerouslySetInnerHTML={{ __html: task.content || '<p>No description provided</p>' }}
                                     />
                                 </div>
                             </div>
                         </DialogContent>
+
                     </Dialog>
                 </CardHeader>
                 <CardContent className="flex-grow">
@@ -224,7 +228,7 @@ function ShowCompletedTasks() {
                                 className="p-0 h-auto text-sm text-blue-300"
                                 onClick={() => toggleDescription(task.id)}
                             >
-                                {expandedDescriptions[task.id] ? 'Show less' : '...Show more'}
+                                {expandedDescriptions[task.id]}
                             </Button>
                         )}
                     </div>

@@ -39,7 +39,7 @@ function ShowUpcomingTasks() {
 
     useEffect(() => {
         fetchUpcomingTasks();
-    }, [currentPage]);
+    }, [currentPage, priorityFilter]);
 
     useEffect(() => {
         if (priorityFilter === 'all') {
@@ -52,7 +52,10 @@ function ShowUpcomingTasks() {
     const fetchUpcomingTasks = async () => {
         setLoading(true);
         try {
-            const response = await AxiosClient.get(`/upcoming_task?page=${currentPage}&limit=${itemsPerPage}`);
+            const url = `/upcoming_task?page=${currentPage}&limit=${itemsPerPage}${priorityFilter !== 'all' ? `&priority=${priorityFilter}` : ''
+                }`;
+
+            const response = await AxiosClient.get(url);
             const data = response.data;
             setTasks(data.message.tasks);
             setTotalPages(data.message.totalPages);
@@ -82,25 +85,18 @@ function ShowUpcomingTasks() {
             setIsUpdating(false);
         }
     };
+ 
 
-    const handlePriorityChange = async (newPriority: string) => {
-        if (!currentTask) return;
-
-        setIsUpdating(true);
-        try {
-            const response = await AxiosClient.patch(`/tasks_priority_change/${currentTask.id}`, {
-                priority: newPriority
-            });
-            fetchUpcomingTasks();
-            toast.success(response.data.message)
-        } catch (error) {
-            console.error('Error updating priority:', error);
-            toast.error("Internal server error!")
-        } finally {
-            setIsUpdating(false);
+    // Add new handler for tab changes
+    const handleFilterChange = (value: string) => {
+        if (value === 'all' || value === 'high' || value === 'medium' || value === 'low') {
+            setPriorityFilter(value);
+            setCurrentPage(1);
         }
+
     };
 
+    
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
@@ -185,9 +181,9 @@ function ShowUpcomingTasks() {
     };
 
     const renderTaskCards = () => {
-        return filteredTasks.map(task => (
-            <Card 
-                key={task.id} 
+        return tasks.map(task => (
+            <Card
+                key={task.id}
                 className={`mb-4 transition-shadow h-full flex flex-col overflow-hidden border ${getPriorityCardColor(task.priority)} hover:shadow-md`}
             >
                 <CardHeader className="flex flex-row justify-between items-start">
@@ -232,7 +228,7 @@ function ShowUpcomingTasks() {
                                     </label>
                                     <Select
                                         value={task.priority}
-                                        onValueChange={handlePriorityChange}
+                                        onValueChange={handleFilterChange}
                                         disabled={isUpdating}
                                     >
                                         <SelectTrigger className="col-span-3">
@@ -311,7 +307,7 @@ function ShowUpcomingTasks() {
                         <h1 className="text-2xl font-bold text-gray-800">Upcoming Tasks</h1>
                         <Tabs
                             value={priorityFilter}
-                            onValueChange={(value) => setPriorityFilter(value as 'all' | 'high' | 'medium' | 'low')}
+                            onValueChange={handleFilterChange as (value: string) => void}
                             className="w-auto"
                         >
                             <TabsList>
@@ -330,8 +326,8 @@ function ShowUpcomingTasks() {
                     ) : filteredTasks.length === 0 ? (
                         <div className="text-center py-12">
                             <p className="text-gray-500">
-                                {priorityFilter !== 'all' 
-                                    ? `No upcoming tasks with ${priorityFilter} priority` 
+                                {priorityFilter !== 'all'
+                                    ? `No upcoming tasks with ${priorityFilter} priority`
                                     : "No upcoming tasks found"}
                             </p>
                         </div>

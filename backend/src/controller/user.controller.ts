@@ -7,7 +7,7 @@ export const addNewTask = async (req: Request, res: Response): Promise<void> => 
   const tableName = "taskmanager.tasks"
   const user = (req as any).user
   console.log(dueDate);
-  
+
 
   try {
     if (!title || !priority || !editorContent || !dueDate) {
@@ -21,7 +21,7 @@ export const addNewTask = async (req: Request, res: Response): Promise<void> => 
       res.status(401).json({ message: "Something went wromg" })
       return
     }
-    
+
     const query = `INSERT INTO ${tableName} (title, content, priority, due_date, user_id) VALUES($1, $2, $3, $4, $5)`
 
     const response = await queryDB(query, [title, editorContent, priority, dueDate, user.userId])
@@ -43,32 +43,49 @@ export const todayTask = async (req: Request, res: Response): Promise<void> => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 6;
   const offset = (page - 1) * limit;
+  const priority = req.query.priority as string;
+
 
   const now = new Date();
   const startOfDayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
   const endOfDayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
   try {
+
+    // Base conditions 
+    let conditions = [
+      `due_date BETWEEN $1 AND $2`,
+      `user_id = $3`,
+      `(status = 'in_progress' OR status = 'todo')`
+    ];
+
+    let params: any[] = [startOfDayUTC.toISOString(), endOfDayUTC.toISOString(), user.userId];
+
+    // Add priority condition if specified
+    if (priority && priority !== 'all') {
+      conditions.push(`priority = $${params.length + 1}`);
+      params.push(priority);
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    // Tasks query
     const tasksQuery = `
-      SELECT * FROM ${tableName} 
-      WHERE due_date BETWEEN $1 AND $2
-      AND user_id = $3
-      AND (status = 'in_progress' OR status = 'todo')
+      SELECT * FROM ${tableName}
+      WHERE ${whereClause}
       ORDER BY due_date ASC
-      LIMIT $4 OFFSET $5
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
     `;
 
-    // IMPORTANT: Add the same status filter to the count query
+     // Count query
     const countQuery = `
-      SELECT COUNT(*) FROM ${tableName} 
-      WHERE due_date BETWEEN $1 AND $2
-      AND user_id = $3
-      AND (status = 'in_progress' OR status = 'todo')
+      SELECT COUNT(*) FROM ${tableName}
+      WHERE ${whereClause}
     `;
 
     const [tasksResponse, countResponse] = await Promise.all([
-      queryDB(tasksQuery, [startOfDayUTC.toISOString(), endOfDayUTC.toISOString(), user.userId, limit, offset]),
-      queryDB(countQuery, [startOfDayUTC.toISOString(), endOfDayUTC.toISOString(), user.userId])
+      queryDB(tasksQuery, [...params, limit, offset]),
+      queryDB(countQuery, params)
     ]);
 
     const totalTasks = parseInt(countResponse[0].count, 10);
@@ -84,7 +101,7 @@ export const todayTask = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     console.error("Error fetching today's tasks:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "server error",
       error: error instanceof Error ? error.message : 'Unknown error'
     });
@@ -92,52 +109,67 @@ export const todayTask = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const upcomingTask = async (req: Request, res: Response): Promise<void> => {
-  const tableName = "taskmanager.tasks";
-  const user = (req as any).user;
+    const tableName = "taskmanager.tasks";
+    const user = (req as any).user;
 
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 6;
-  const offset = (page - 1) * limit;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 6;
+    const offset = (page - 1) * limit;
+    const priority = req.query.priority as string;
 
-  const nowUTC = new Date().toISOString(); // Ensures UTC comparison for timestampz
+    const nowUTC = new Date().toISOString();
 
-  try {
-    const tasksQuery = `
-      SELECT * FROM ${tableName} 
-      WHERE due_date > $1 
-      AND user_id = $2 
-      AND (status = 'in_progress' OR status = 'todo') 
-      ORDER BY due_date ASC
-      LIMIT $3 OFFSET $4
-    `; // IN ()
+    try {
+        // Base conditions
+        let conditions = [
+            `due_date > $1`,
+            `user_id = $2`,
+            `(status = 'in_progress' OR status = 'todo')`
+        ];
+        let params: any[] = [nowUTC, user.userId];
 
-    const countQuery = `
-      SELECT COUNT(*) FROM ${tableName} 
-      WHERE due_date > $1
-      AND user_id = $2
-      AND (status = 'in_progress' OR status = 'todo')
-    `;
+        // Add priority condition if specified
+        if (priority && priority !== 'all') {
+            conditions.push(`priority = $${params.length + 1}`);
+            params.push(priority);
+        }
 
-    const [tasksResponse, countResponse] = await Promise.all([
-      queryDB(tasksQuery, [nowUTC, user.userId, limit, offset]),
-      queryDB(countQuery, [nowUTC, user.userId])
-    ]);
+        const whereClause = conditions.join(' AND ');
 
-    const totalTasks = parseInt(countResponse[0].count, 10);
-    const totalPages = Math.ceil(totalTasks / limit);
+        // Tasks query
+        const tasksQuery = `
+            SELECT * FROM ${tableName}
+            WHERE ${whereClause}
+            ORDER BY due_date ASC
+            LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+        `;
 
-    res.status(200).json({
-      message: {
-        tasks: tasksResponse,
-        totalPages,
-        currentPage: page,
-        totalTasks
-      }
-    });
-  } catch (error) {
-    console.error("Error fetching upcoming tasks:", error);
-    res.status(500).json({ message: "server error" });
-  }
+        // Count query
+        const countQuery = `
+            SELECT COUNT(*) FROM ${tableName}
+            WHERE ${whereClause}
+        `;
+
+        const [tasksResponse, countResponse] = await Promise.all([
+            queryDB(tasksQuery, [...params, limit, offset]),
+            queryDB(countQuery, params)
+        ]);
+
+        const totalTasks = parseInt(countResponse[0].count, 10);
+        const totalPages = Math.ceil(totalTasks / limit);
+
+        res.status(200).json({
+            message: {
+                tasks: tasksResponse,
+                totalPages,
+                currentPage: page,
+                totalTasks
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching upcoming tasks:", error);
+        res.status(500).json({ message: "server error" });
+    }
 };
 
 export const completedTask = async (req: Request, res: Response): Promise<void> => {
@@ -147,24 +179,41 @@ export const completedTask = async (req: Request, res: Response): Promise<void> 
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 6;
   const offset = (page - 1) * limit;
+  const priority = req.query.priority as string;
 
   try {
-    const tasksQuery = `
-      SELECT * FROM ${tableName} 
-      WHERE user_id = $1
-      AND status = 'done' 
-      ORDER BY due_date ASC
-      LIMIT $2 OFFSET $3
-    `; // IN ()
+    // Base conditions
+    let conditions = [
+      `user_id = $1`,
+      `status = 'done'`
+    ];
+    let params: any[] = [user.userId];
 
+    // Add priority condition if specified
+    if (priority && priority !== 'all') {
+      conditions.push(`priority = $${params.length + 1}`);
+      params.push(priority);
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    // Tasks query
+    const tasksQuery = `
+      SELECT * FROM ${tableName}
+      WHERE ${whereClause}
+      ORDER BY due_date ASC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+
+    // Count query
     const countQuery = `
-      SELECT COUNT(*) FROM ${tableName} 
-      WHERE user_id = $1 AND status = 'done'
+      SELECT COUNT(*) FROM ${tableName}
+      WHERE ${whereClause}
     `;
 
     const [tasksResponse, countResponse] = await Promise.all([
-      queryDB(tasksQuery, [user.userId, limit, offset]),
-      queryDB(countQuery, [user.userId])
+      queryDB(tasksQuery, [...params, limit, offset]),
+      queryDB(countQuery, params)
     ]);
 
     const totalTasks = parseInt(countResponse[0].count, 10);
@@ -179,8 +228,11 @@ export const completedTask = async (req: Request, res: Response): Promise<void> 
       }
     });
   } catch (error) {
-    console.error("Error fetching upcoming tasks:", error);
-    res.status(500).json({ message: "server error" });
+    console.error("Error fetching completed tasks:", error);
+    res.status(500).json({
+      message: "server error",
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
@@ -327,7 +379,7 @@ export const allTasksCount = async (req: Request, res: Response): Promise<void> 
         AND user_id = $3
         AND (status = 'in_progress' OR status = 'todo')
       `, [startOfDayUTC.toISOString(), endOfDayUTC.toISOString(), user.userId]),
-      
+
       // Upcoming tasks
       queryDB(`
         SELECT COUNT(*) as count FROM ${tableName} 
@@ -341,7 +393,7 @@ export const allTasksCount = async (req: Request, res: Response): Promise<void> 
         SELECT COUNT(*) as count FROM ${tableName} 
         WHERE status = 'done' AND user_id = $1 
       `, [user.userId]),
-      
+
     ]);
 
     res.status(200).json({
@@ -353,7 +405,7 @@ export const allTasksCount = async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     console.error('Error fetching task counts:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Failed to fetch task counts",
       error: error instanceof Error ? error.message : 'Unknown error'
     });

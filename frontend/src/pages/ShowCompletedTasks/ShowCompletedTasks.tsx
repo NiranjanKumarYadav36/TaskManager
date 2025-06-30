@@ -38,7 +38,7 @@ function ShowCompletedTasks() {
 
     useEffect(() => {
         fetchCompletedTasks();
-    }, [currentPage]);
+    }, [currentPage, priorityFilter]);
 
     useEffect(() => {
         if (priorityFilter === 'all') {
@@ -51,7 +51,9 @@ function ShowCompletedTasks() {
     const fetchCompletedTasks = async () => {
         setLoading(true)
         try {
-            const response = await AxiosClient.get(`/completed_task?page=${currentPage}&limit=${itemsPerPage}`);
+            const url = `/completed_task?page=${currentPage}&limit=${itemsPerPage}${priorityFilter !== 'all' ? `&priority=${priorityFilter}` : ''
+                }`;
+            const response = await AxiosClient.get(url);
             const data = response.data;
             setTasks(data.message.tasks);
             setTotalPages(data.message.totalPages);
@@ -61,6 +63,15 @@ function ShowCompletedTasks() {
         } finally {
             setLoading(false)
         }
+    };
+
+    // Add new handler for tab changes
+    const handleFilterChange = (value: string) => {
+        if (value === 'all' || value === 'high' || value === 'medium' || value === 'low') {
+            setPriorityFilter(value);
+            setCurrentPage(1);
+        }
+
     };
 
     const formatDate = (dateString: string) => {
@@ -251,7 +262,7 @@ function ShowCompletedTasks() {
                         <h1 className="text-2xl font-bold text-gray-800">Completed Tasks</h1>
                         <Tabs
                             value={priorityFilter}
-                            onValueChange={(value) => setPriorityFilter(value as 'all' | 'high' | 'medium' | 'low')}
+                            onValueChange={handleFilterChange}
                             className="w-auto"
                         >
                             <TabsList>

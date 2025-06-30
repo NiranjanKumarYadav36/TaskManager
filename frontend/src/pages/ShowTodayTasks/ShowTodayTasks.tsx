@@ -33,12 +33,13 @@ function ShowTodayTasks() {
     const itemsPerPage = 6;
     const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
     const [currentTask, setCurrentTask] = useState<Task | null>(null);
+    
     const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
     const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
 
     useEffect(() => {
         fetchTodayTasks();
-    }, [currentPage]);
+    }, [currentPage, priorityFilter]);
 
     useEffect(() => {
         if (priorityFilter === 'all') {
@@ -51,7 +52,9 @@ function ShowTodayTasks() {
     const fetchTodayTasks = async () => {
         setLoading(true);
         try {
-            const response = await AxiosClient.get(`/today_task?page=${currentPage}&limit=${itemsPerPage}`);
+            const url = `/today_task?page=${currentPage}&limit=${itemsPerPage}${priorityFilter !== 'all' ? `&priority=${priorityFilter}` : ''
+                }`;
+            const response = await AxiosClient.get(url);
             const data = response.data;
             setTasks(data.message.tasks);
             setTotalPages(data.message.totalPages);
@@ -61,6 +64,15 @@ function ShowTodayTasks() {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Add new handler for tab changes
+    const handleFilterChange = (value: string) => {
+        if (value === 'all' || value === 'high' || value === 'medium' || value === 'low') {
+            setPriorityFilter(value);
+            setCurrentPage(1);
+        }
+
     };
 
     const formatDate = (dateString: string) => {
@@ -245,7 +257,7 @@ function ShowTodayTasks() {
                         <h1 className="text-2xl font-bold text-gray-800">Today's Tasks</h1>
                         <Tabs
                             value={priorityFilter}
-                            onValueChange={(value) => setPriorityFilter(value as 'all' | 'high' | 'medium' | 'low')}
+                            onValueChange={handleFilterChange}
                             className="w-auto"
                         >
                             <TabsList>
